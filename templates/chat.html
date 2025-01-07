@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        
+        // ID de la room - vous devez vous assurer que le code de la room soit passé à partir du serveur
+        const roomCode = "{{ room.code }}";
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('message', (data) => {
+            const chat = document.getElementById('chat');
+            const message = document.createElement('p');
+            message.textContent = `${data.user}: ${data.message} (${data.timestamp})`;
+            chat.appendChild(message);
+        });
+
+        function sendMessage() {
+            const input = document.getElementById('message');
+            const message = input.value;
+
+            socket.send({
+                'room_code': roomCode,  // Code de la room
+                'message': message       // Contenu du message
+            });
+
+            input.value = '';  // Réinitialiser l'input après l'envoi
+        }
+    </script>
+</head>
+<body>
+    <h1>Chat Room: {{ room.name }}</h1>
+    <div id="chat" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll;">
+        {% for message in messages %}
+            <p><strong>{{ message.user.username }}:</strong> {{ message.content }} <em>{{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</em></p>
+        {% endfor %}
+    </div>
+    
+    <input id="message" type="text" placeholder="Type a message">
+    <button onclick="sendMessage()">Send</button>
+</body>
+</html>

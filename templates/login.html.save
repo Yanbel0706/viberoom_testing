@@ -1,0 +1,14 @@
+CTYPE html>
+<html laset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	        <title>Lo<body>
+				    <h1>Login</h1>
+				        <form method="POST">
+i						        <label for="username">Username:</label>
+							        <inputext" name="username" id="username" required>
+									          <ord">Password:</label>
+									          <input type="password" name="passwordssword" required   <button type="submit">Login</butto</form>
+					    <p>Don't have an account? <a href="{{') }}">Sign up</a></p>
+			</body>
+</html>
+

@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <h2>Créez ou rejoignez une room</h2>
+
+    <!-- Formulaire de création de room -->
+    <form method="POST">
+        <h3>Créer une room</h3>
+        <div>
+            <label for="room_name">Nom de la room :</label>
+            <input type="text" id="room_name" name="room_name" required>
+        </div>
+        <button type="submit" name="create_room">Créer la room</button>
+    </form>
+
+    <!-- Formulaire de rejoindre une room -->
+    <form method="POST">
+        <h3>Rejoindre une room</h3>
+        <div>
+            <label for="room_code">Code de la room :</label>
+            <input type="text" id="room_code" name="room_code" required>
+        </div>
+        <button type="submit" name="join_room">Rejoindre la room</button>
+    </form>
+{% endblock %}

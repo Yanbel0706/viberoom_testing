@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Tu peux aussi ajouter d'autres fichiers CSS/JS ici -->
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{{ url_for('index') }}">Home</a>
+        </nav>
+    </header>
+
+    <div id="content">
+        {% block content %}
+        <!-- Le contenu de chaque page spécifique sera inséré ici -->
+        {% endblock %}
+    </div>
+
+    <footer>
+        <p>© 2025 Chat App</p>
+    </footer>
+</body>
+</html>
