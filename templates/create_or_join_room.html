@@ -22,4 +22,15 @@
         </div>
         <button type="submit" name="join_room">Rejoindre la room</button>
     </form>
+
+    <h3>Rooms auxquelles vous avez rejoint :</h3>
+    <div>
+        {% for room in joined_rooms %}
+            <form method="POST" action="{{ url_for('chat', room_code=room.code) }}">
+                <button type="submit">{{ room.code }}</button>
+            </form>
+        {% else %}
+            <p>Vous n'avez rejoint aucune room pour le moment.</p>
+        {% endfor %}
+    </div>
 {% endblock %}

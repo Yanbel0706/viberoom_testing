@@ -3,47 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
-    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <title>Chat Room</title>
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #chat { max-height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        #message { width: 80%; margin-bottom: 10px; }
+        button { padding: 10px; margin-right: 5px; }
+        .button-container { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Room: {{ room.name }}</h1>
+    <div id="chat">
+        {% for message in messages %}
+            <p><strong>{{ message.author.username }}</strong>: {{ message.content }} <em>({{ message.timestamp }})</em></p>
+        {% endfor %}
+    </div>
+    <input id="message" type="text" placeholder="Type your message here">
+    <button onclick="sendMessage()">Send</button>
+    
+    <div class="button-container">
+        <button onclick="quitRoom()">Quit Room</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+
     <script>
         const socket = io();
-        
-        // ID de la room - vous devez vous assurer que le code de la room soit passé à partir du serveur
         const roomCode = "{{ room.code }}";
 
         socket.on('connect', () => {
-            console.log('Connected to server');
+            socket.emit('join', { username: '{{ session["user_id"] }}', room: roomCode });
         });
 
         socket.on('message', (data) => {
             const chat = document.getElementById('chat');
             const message = document.createElement('p');
-            message.textContent = `${data.user}: ${data.message} (${data.timestamp})`;
+            message.innerHTML = `<strong>${data.user}</strong>: ${data.message} <em>(${data.timestamp})</em>`;
             chat.appendChild(message);
+            chat.scrollTop = chat.scrollHeight;
         });
 
         function sendMessage() {
             const input = document.getElementById('message');
             const message = input.value;
 
-            socket.send({
-                'room_code': roomCode,  // Code de la room
-                'message': message       // Contenu du message
-            });
+            if (message.trim() !== '') {
+                socket.emit('message', { room: roomCode, message: message });
+                input.value = '';
+            }
+        }
 
-            input.value = '';  // Réinitialiser l'input après l'envoi
+        function quitRoom() {
+            window.location.href = '/quit_room'; // Quitte la room et redirige vers la page de création/rejoindre des rooms
+        }
+
+        function logout() {
+            window.location.href = '/logout'; // Déconnexion et redirection vers la page de login
         }
     </script>
-</head>
-<body>
-    <h1>Chat Room: {{ room.name }}</h1>
-    <div id="chat" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll;">
-        {% for message in messages %}
-            <p><strong>{{ message.user.username }}:</strong> {{ message.content }} <em>{{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</em></p>
-        {% endfor %}
-    </div>
-    
-    <input id="message" type="text" placeholder="Type a message">
-    <button onclick="sendMessage()">Send</button>
 </body>
 </html>
