@@ -11,14 +11,23 @@
         #message { width: 80%; margin-bottom: 10px; }
         button { padding: 10px; margin-right: 5px; }
         .button-container { margin-top: 10px; }
+        .message-left { text-align: left; }
+        .message-right { text-align: right; }
+        .timestamp { font-size: 0.8em; color: gray; }
     </style>
 </head>
 <body>
-    <h1>Room: {{ room.name }}</h1>
+    <h1>Room: {{ room.name }} - {{ session['user_id'] }}</h1>
     <div id="chat">
         {% for message in messages %}
-            <p><strong>{{ message.author.username }}</strong>: {{ message.content }} <em>({{ message.timestamp }})</em></p>
+            <p class="{{ 'message-right' if message.author.username == session['user_id'] else 'message-left' }}">
+                <strong>{{ message.author.username }}</strong>: {{ message.content }} 
+                <em class="timestamp">({{ message.timestamp }})</em>
+            </p>
         {% endfor %}
+        {% if room.users %}
+            <p style="text-align: center; font-weight: bold;">{{ room.users[-1].username }} a rejoint la room.</p>
+        {% endif %}
     </div>
     <input id="message" type="text" placeholder="Type your message here">
     <button onclick="sendMessage()">Send</button>
@@ -39,7 +48,8 @@
         socket.on('message', (data) => {
             const chat = document.getElementById('chat');
             const message = document.createElement('p');
-            message.innerHTML = `<strong>${data.user}</strong>: ${data.message} <em>(${data.timestamp})</em>`;
+            message.className = data.user === '{{ session["user_id"] }}' ? 'message-right' : 'message-left';
+            message.innerHTML = `<strong>${data.user}</strong>: ${data.message} <em class="timestamp">(${data.timestamp})</em>`;
             chat.appendChild(message);
             chat.scrollTop = chat.scrollHeight;
         });
