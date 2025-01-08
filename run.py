@@ -20,8 +20,7 @@ db = SQLAlchemy(app)
 # Définition des modèles de la base de données
 
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
+    username = db.Column(db.String(100), primary_key=True)  # username devient la clé primaire
     password = db.Column(db.String(100), nullable=False)
     messages = db.relationship('Message', backref='author', lazy=True)
     user_rooms = db.relationship('RoomUser', backref='user', lazy=True)
@@ -30,20 +29,19 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(500), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+    username = db.Column(db.String(100), db.ForeignKey('user.username'), nullable=False)  # user_id devient username
+    room_code = db.Column(db.String(4), db.ForeignKey('room.code'), nullable=False)  # room_id devient code
 
 class Room(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(4), primary_key=True)  # code devient la clé primaire
     name = db.Column(db.String(100), nullable=False)
-    code = db.Column(db.String(4), unique=True, nullable=False)
     messages = db.relationship('Message', backref='room', lazy=True)
     users = db.relationship('RoomUser', backref='room', lazy=True)
 
 class RoomUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    room_code = db.Column(db.String(4), db.ForeignKey('room.code'), nullable=False)  # room_id devient code
+    username = db.Column(db.String(100), db.ForeignKey('user.username'), nullable=False)  # user_id devient username
 
 # Fonction pour générer un code de room
 def generate_room_code():
@@ -86,7 +84,7 @@ def login():
 
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
+            session['user_id'] = user.username  # Sauvegarde le username, pas l'id
             flash('Connexion réussie !', 'success')
             return redirect(url_for('create_or_join_room'))
         else:
@@ -112,7 +110,7 @@ def create_or_join_room():
             db.session.commit()
 
             room = Room.query.filter_by(code=room_code).first()
-            new_room_user = RoomUser(room_id=room.id, user_id=user.id)
+            new_room_user = RoomUser(room_code=room.code, username=user.username)
             db.session.add(new_room_user)
             db.session.commit()
 
@@ -124,9 +122,9 @@ def create_or_join_room():
             room = Room.query.filter_by(code=room_code).first()
 
             if room:
-                existing_room_user = RoomUser.query.filter_by(room_id=room.id, user_id=user.id).first()
+                existing_room_user = RoomUser.query.filter_by(room_code=room.code, username=user.username).first()
                 if not existing_room_user:
-                    new_room_user = RoomUser(room_id=room.id, user_id=user.id)
+                    new_room_user = RoomUser(room_code=room.code, username=user.username)
                     db.session.add(new_room_user)
                     db.session.commit()
                     flash(f'Vous avez rejoint la room avec le code : {room_code}', 'success')
@@ -147,7 +145,7 @@ def chat(room_code):
     room = Room.query.filter_by(code=room_code).first()
 
     if room:
-        messages = Message.query.filter_by(room_id=room.id).all()
+        messages = Message.query.filter_by(room_code=room.code).all()
         return render_template('chat.html', room=room, messages=messages)
     else:
         flash('Room not found', 'danger')
@@ -177,7 +175,7 @@ def handle_message(data):
     room = Room.query.filter_by(code=data['room']).first()
 
     if room:
-        message = Message(user_id=user.id, room_id=room.id, content=data['message'])
+        message = Message(username=user.username, room_code=room.code, content=data['message'])
         db.session.add(message)
         db.session.commit()
 
